@@ -55,6 +55,7 @@ jobs:
       continue-on-error: true
     - name: Build database
       run: |-
+        mkdir -p main
         cd main
         python build_database.py
     - name: Soundness check
