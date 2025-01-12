@@ -66,6 +66,13 @@ jobs:
     #   run: |-
     #     cd main
     #     python generate_screenshots.py
+    - name: Debug Git
+      run: |-
+        echo "Current user:"
+        git config --get user.name
+        git config --get user.email
+        echo "Repository Status:"
+        git status
     - name: Update README
       run: |-
         cd main
