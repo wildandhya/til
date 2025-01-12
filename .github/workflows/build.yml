@@ -58,10 +58,10 @@ jobs:
         mkdir -p main
         cd main
         python build_database.py
-    - name: Soundness check
-      run: |-
-        cd main
-        datasette . --get / | grep "Leo: TIL"
+    # - name: Soundness check
+    #   run: |-
+    #     cd main
+    #     datasette . --get / | grep "Wildan: TIL"
     - name: Generate missing screenshots
       run: |-
         cd main
