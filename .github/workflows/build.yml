@@ -48,7 +48,8 @@ jobs:
     - name: Download previous database unless REBUILD in commit message
       if: |-
         !contains(github.event.head_commit.message, 'REBUILD')
-      run: curl --fail -o main/tils.db https://raw.githubusercontent.com/wildandhya/til-db/main/tils.db
+      run: |
+        curl --fail -o main/tils.db "https://raw.githubusercontent.com/wildandhya/til-db/refs/heads/main/tils.db?token=${{ secrets.GITHUB_TOKEN }}"
       continue-on-error: true
     - name: Build database
       run: |-
@@ -106,3 +107,5 @@ jobs:
           --plugins-dir plugins \
           --template-dir templates \
           --public
+
+          
