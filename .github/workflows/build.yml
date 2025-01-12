@@ -19,7 +19,7 @@ jobs:
     - name: Checkout til-db
       uses: actions/checkout@v2
       with:
-        repository: mopig/til-db
+        repository: wildandhya/til-db
         path: til-db
         token: ${{ secrets.PERSONAL_ACCESS_TOKEN_FOR_PUSH }}
     - name: Set up Python
@@ -93,7 +93,7 @@ jobs:
         cd main
         datasette publish vercel tils.db \
           --token $VERCEL_TOKEN \
-          --project mopig-til \
+          --project wildandhyas-projects \
           --metadata metadata.yaml \
           --static static:static \
           --install datasette-template-sql \
