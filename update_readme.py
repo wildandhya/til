@@ -1,4 +1,4 @@
-"Run this after build_database.py - it needs tils.db"
+"Run this after build_database.py - it needs til.db"
 import pathlib
 import sqlite_utils
 import sys
@@ -35,6 +35,6 @@ if __name__ == "__main__":
         readme_contents = readme.open().read()
         rewritten = index_re.sub(index_txt, readme_contents)
         rewritten = count_re.sub(COUNT_TEMPLATE.format(db["til"].count), rewritten)
-        readme.open("w").write(rewritten)
+        readme.open("w").write(rewritten)    
     else:
         print("\n".join(index))
