@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-    # Uncomment below to ignore README changes (prevents infinite loops)
-    # paths-ignore:
-    #   - README.md
 
 jobs:
   update-readme:
