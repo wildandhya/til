@@ -3,10 +3,10 @@ README Generator for TIL (Today I Learned) Database
 ------------------------------------------------
 This script generates a formatted README.md file from a SQLite database of TIL entries.
 It updates index sections, category listings, and entry counts in the README.
-If the database or table doesn't exist, it will create them automatically.
+The database should be built first using build_database.py.
 
 Prerequisites:
-    - Required packages: sqlite_utils, pathlib
+    - Required packages: sqlite_utils, pathlib, git
     
 Usage:
     python update_readme.py [--rewrite]
@@ -18,8 +18,9 @@ import sqlite_utils
 import sys
 import re
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional
+import git
+from datetime import timezone
+from typing import Dict, List
 from dataclasses import dataclass
 
 # Configure logging
@@ -33,13 +34,17 @@ README_FILENAME = "README.md"
 DATABASE_FILENAME = "tils.db"
 TABLE_NAME = "til"
 
-# Database schema definition
+# Updated Database schema definition to match build_database.py
 TABLE_SCHEMA = {
+    "path": str,
+    "topic": str,
     "title": str,
     "url": str,
-    "topic": str,
+    "body": str,
     "created": str,
-    "created_utc": float
+    "created_utc": str,
+    "updated": str,
+    "updated_utc": str
 }
 
 # Regular expressions for section markers
@@ -60,11 +65,72 @@ TEMPLATES = {
 @dataclass
 class TILEntry:
     """Represents a single TIL entry."""
+    path: str
+    topic: str
     title: str
     url: str
-    topic: str
+    body: str
     created: str
-    created_utc: float
+    created_utc: str
+    updated: str
+    updated_utc: str
+
+def created_changed_times(repo_path, ref="main"):
+    """Get creation and update times for all files in the repository."""
+    created_changed_times = {}
+    repo = git.Repo(repo_path, odbt=git.GitDB)
+    commits = reversed(list(repo.iter_commits(ref)))
+    for commit in commits:
+        dt = commit.committed_datetime
+        affected_files = list(commit.stats.files.keys())
+        for filepath in affected_files:
+            if filepath not in created_changed_times:
+                created_changed_times[filepath] = {
+                    "created": dt.isoformat(),
+                    "created_utc": dt.astimezone(timezone.utc).isoformat(),
+                }
+            created_changed_times[filepath].update(
+                {
+                    "updated": dt.isoformat(),
+                    "updated_utc": dt.astimezone(timezone.utc).isoformat(),
+                }
+            )
+    return created_changed_times
+
+def build_database(repo_path):
+    """Build/update the database from markdown files."""
+    all_times = created_changed_times(repo_path)
+    db = sqlite_utils.Database(repo_path / DATABASE_FILENAME)
+    table = db.table(TABLE_NAME, pk="path")
+    
+    records = []
+    for filepath in repo_path.glob("*/*.md"):
+        with filepath.open() as fp:
+            title = fp.readline().lstrip("#").strip()
+            body = fp.read().strip()
+            
+        path = str(filepath.relative_to(repo_path))
+        url = f"https://github.com/wildandhya/til/blob/main/{path}"
+        record = {
+            "path": path.replace("/", "_"),
+            "topic": path.split("/")[0],
+            "title": title,
+            "url": url,
+            "body": body,
+        }
+        
+        # Only update if the file exists in git history
+        if path in all_times:
+            record.update(all_times[path])
+            records.append(record)
+        else:
+            logging.warning(f"File {path} not found in git history")
+
+    table.upsert_all(records, pk="path")
+    
+    # full-text search
+    if "til_fts" not in db.table_names():
+        table.enable_fts(["title", "body"])
 
 class ReadmeGenerator:
     def __init__(self, root_path: pathlib.Path):
@@ -74,41 +140,19 @@ class ReadmeGenerator:
         self.db = None
 
     def connect_db(self) -> None:
-        """Establishes database connection and ensures table exists."""
+        """Establishes database connection."""
         try:
             self.db = sqlite_utils.Database(self.db_path)
-            self._ensure_table_exists()
         except Exception as e:
             logging.error(f"Database connection failed: {e}")
             raise
-
-    def _ensure_table_exists(self) -> None:
-        """Creates the TIL table if it doesn't exist."""
-        if TABLE_NAME not in self.db.table_names():
-            logging.info(f"Creating table '{TABLE_NAME}'")
-            self.db.create_table(
-                TABLE_NAME,
-                TABLE_SCHEMA,
-                pk="url",
-                not_null={"title", "url", "topic", "created", "created_utc"}
-            )
-            # Create indexes for better performance
-            self.db[TABLE_NAME].create_index(["topic"])
-            self.db[TABLE_NAME].create_index(["created_utc"])
-            logging.info(f"Table '{TABLE_NAME}' created successfully")
 
     def get_entries_by_topic(self) -> Dict[str, List[TILEntry]]:
         """Retrieves all TIL entries grouped by topic."""
         by_topic = {}
         try:
             for row in self.db[TABLE_NAME].rows_where(order_by="created_utc"):
-                entry = TILEntry(
-                    title=row["title"],
-                    url=row["url"],
-                    topic=row["topic"],
-                    created=row["created"],
-                    created_utc=row["created_utc"]
-                )
+                entry = TILEntry(**row)
                 by_topic.setdefault(entry.topic, []).append(entry)
         except Exception as e:
             logging.error(f"Error retrieving entries: {e}")
@@ -121,7 +165,7 @@ class ReadmeGenerator:
         
         for topic, entries in sorted(by_topic.items()):
             index.append(f"## {topic}\n")
-            for entry in entries:
+            for entry in sorted(entries, key=lambda x: x.created_utc, reverse=True):
                 date = entry.created.split("T")[0]
                 index.append(
                     f"* [{entry.title}]({entry.url}) - {date}"
@@ -138,8 +182,9 @@ class ReadmeGenerator:
         category = [TEMPLATES['category_start']]
         
         for topic in sorted(by_topic.keys()):
+            entry_count = len(by_topic[topic])
             category.append(
-                f"* [{topic}](#{topic.lower().replace(' ', '-')})"
+                f"* [{topic}](#{topic.lower()}) ({entry_count} TILs)"
             )
         
         category.append(TEMPLATES['category_end'])
@@ -171,14 +216,12 @@ class ReadmeGenerator:
             with open(self.readme_path, 'r', encoding='utf-8') as f:
                 content = f.read()
 
-            # Update all sections
-            for pattern, replacement in [
-                (PATTERNS['category'], category_content),
-                (PATTERNS['index'], index_content),
-                (PATTERNS['count'], TEMPLATES['count'].format(count))
-            ]:
-                content = pattern.sub(replacement, content)
+            # Update each section individually to preserve formatting
+            content = PATTERNS['category'].sub(category_content, content)
+            content = PATTERNS['index'].sub(index_content, content)
+            content = PATTERNS['count'].sub(TEMPLATES['count'].format(count), content)
 
+            # Write the updated content back to the file
             with open(self.readme_path, 'w', encoding='utf-8') as f:
                 f.write(content)
 
@@ -188,6 +231,11 @@ class ReadmeGenerator:
 
 def main():
     root = pathlib.Path(__file__).parent.resolve()
+    
+    # First build/update the database
+    build_database(root)
+    
+    # Then generate the README
     generator = ReadmeGenerator(root)
     generator.update_readme(rewrite="--rewrite" in sys.argv)
 
