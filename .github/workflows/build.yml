@@ -1,44 +1,50 @@
-name: Build README 
+name: Build README
 
 on:
   push:
     branches:
-    - main
-#     paths-ignore:
-#     - README.md
+      - main
+    # Uncomment below to ignore README changes (prevents infinite loops)
+    # paths-ignore:
+    #   - README.md
 
 jobs:
-  build:
+  update-readme:
+    name: Update README
     runs-on: ubuntu-latest
+    
     steps:
-    - name: Check out repo
-      uses: actions/checkout@v2
-      # We need full history to introspect created/updated:
-      with:
-        fetch-depth: 0  
-    - name: Set up Python
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.9
-    - uses: actions/cache@v1
-      name: Configure pip caching
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Update README
-      run: |-
-        python readme_generator.py --rewrite
-        cat README.md
-    - name: Commit and push if README changed
-      run: |-
-        git diff
-        git config --global user.email "readme-bot@example.com"
-        git config --global user.name "README-bot"
-        git diff --quiet || (git add README.md && git commit -m "Updated README")
-        git push 
+      - name: Checkout repository
+        uses: actions/checkout@v3  
+        with:
+          fetch-depth: 0  # Full history for git operations
+          
+      - name: Set up Python
+        uses: actions/setup-python@v4 
+        with:
+          python-version: "3.9"
+          cache: 'pip'  # Built-in pip caching in v4
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Generate README
+        run: |
+          python readme_generator.py --rewrite
+          cat README.md
+          
+      - name: Commit and push changes
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "GitHub Actions Bot"
+
+          # Check for changes in README.md or SQLite DB (tils.db)
+          if [ -n "$(git status --porcelain README.md tils.db)" ]; then
+            git add README.md tils.db
+            git commit -m "docs: update README or SQLite database changes"
+            git push
+          else
+            echo "No changes to README.md or SQLite DB detected"
+          fi
