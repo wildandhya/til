@@ -1,1 +1,2 @@
 # Idempotency
+Idempotency adalah sebuah konsep dalam pemrograman yang merujuk pada proses di mana sebuah permintaan (request) yang dikirimkan berulang kali akan menghasilkan respons yang konsisten dan sama, tanpa menimbulkan efek samping tambahan.
