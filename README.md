@@ -1,5 +1,7 @@
 # Today I Learned
 
+> Inspired by [simonw/til](https://github.com/simonw/til)
+
 <!-- count starts -->6<!-- count ends --> TILS so far
 
 ## Category
