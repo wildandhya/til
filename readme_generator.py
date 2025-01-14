@@ -1,18 +1,3 @@
-"""
-README Generator for TIL (Today I Learned) Database
-------------------------------------------------
-This script generates a formatted README.md file from a SQLite database of TIL entries.
-It updates index sections, category listings, and entry counts in the README.
-The database should be built first using build_database.py.
-
-Prerequisites:
-    - Required packages: sqlite_utils, pathlib, git
-    
-Usage:
-    python update_readme.py [--rewrite]
-    --rewrite: Updates README.md file directly instead of printing to stdout
-"""
-
 import pathlib
 import sqlite_utils
 import sys
