@@ -1,16 +1,13 @@
 # Today I Learned
 
-<!-- count starts -->4<!-- count ends --> TILS
+<!-- count starts -->2<!-- count ends --> TILS
+
+## Category
+<!-- category starts -->
+* [openssl](#openssl)
+<!-- category ends -->
 
 <!-- index starts -->
-## nestjs
-
-* [Intro Nestjs](https://github.com/wildandhya/til/blob/main/nestjs/intro-nestjs.md) - 2025-01-12
-
-## vagrant
-
-* [Intro Vagrant](https://github.com/wildandhya/til/blob/main/vagrant/intro-vagrant.md) - 2025-01-12
-
 ## openssl
 
 * [Generate Private & Public Key](https://github.com/wildandhya/til/blob/main/openssl/generate-private-public-key.md) - 2025-01-13
