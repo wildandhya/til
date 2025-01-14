@@ -35,7 +35,7 @@ jobs:
       run: python build_database.py
     - name: Update README
       run: |-
-        python update_readme.py --rewrite
+        python readme_generatorpy --rewrite
         cat README.md
     - name: Commit and push if README changed
       run: |-
