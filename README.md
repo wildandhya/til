@@ -1,10 +1,11 @@
 # Today I Learned
 
-<!-- count starts -->5<!-- count ends --> TILS so far
+<!-- count starts -->6<!-- count ends --> TILS so far
 
 ## Category
 <!-- category starts -->
 * [english](#english) (3 TILs)
+* [http](#http) (1 TILs)
 * [openssl](#openssl) (2 TILs)
 <!-- category ends -->
 
@@ -14,6 +15,10 @@
 * [Participle](https://github.com/wildandhya/til/blob/main/english/participle.md) - 2025-01-14
 * [Verb](https://github.com/wildandhya/til/blob/main/english/verb.md) - 2025-01-14
 * [To Be](https://github.com/wildandhya/til/blob/main/english/to-be.md) - 2025-01-14
+
+## http
+
+* [Idempotency](https://github.com/wildandhya/til/blob/main/http/idempotency.md) - 2025-01-14
 
 ## openssl
 
