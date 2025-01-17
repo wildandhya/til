@@ -49,7 +49,7 @@ jobs:
       - name: Setup Nodejs
         uses: actions/setup-node@v1
         with:
-          node-version: '15.x'
+          node-version: '18.x'
 
       - name: Install Vercel
         run: npm i -g vercel
