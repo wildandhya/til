@@ -1,6 +1,6 @@
 GitPython
 sqlite-utils
-py-gfm
+beautifulsoup4
 datasette>=0.54
 datasette-atom>=0.7
 datasette-publish-vercel>=0.9.1
