@@ -45,3 +45,29 @@ jobs:
           else
             echo "No changes to README.md or SQLite DB detected"
           fi
+
+      - name: Setup Nodejs
+        uses: actions/setup-node@v1
+        with:
+          node-version: '15.x'
+      
+      - name: Deploy Datasette using vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |-
+          datasette publish vercel tils.db \
+          --token $VERCEL_TOKEN \
+          --project wildandhya-til \
+          --metadata metadata.yaml \
+          --static static:static \
+          --install datasette-template-sql \
+          --install "datasette-atom>=0.7" \
+          --install datasette-json-html \
+          --install beautifulsoup4 \
+          --install datasette-debug-asgi \
+          --install "datasette-graphql>=0.12" \
+          --install datasette-media \
+          --plugins-dir plugins \
+          --template-dir templates \
+          --public 
+    
