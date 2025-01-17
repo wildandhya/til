@@ -1,9 +1,6 @@
 title: Today I Learned
 about: wildandhya/til
 about_url: https://github.com/wildandhya/til
-plugins:
-  datasette-atom:
-    allow_unsafe_html_in_canned_queries: true
 databases:
   tils:
     queries:

@@ -44,29 +44,21 @@ jobs:
             git push
           else
             echo "No changes to README.md or SQLite DB detected"
-          fi
-
-      - name: Setup Nodejs
-        uses: actions/setup-node@v1
-        with:
-          node-version: '18.x'
-
-      - name: Install Vercel
-        run: npm i -g vercel
-      
-      - name: Deploy Datasette using vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |-
-          datasette publish vercel tils.db \
-          --token $VERCEL_TOKEN \
-          --project wildandhya-til \
-          --metadata metadata.yaml \
-          --install datasette-template-sql \
-          --install "datasette-atom>=0.7" \
-          --install datasette-json-html \
-          --install beautifulsoup4 \
-          --install datasette-debug-asgi \
-          --install "datasette-graphql>=0.12" \
-          --public 
+            fi
+            
+        - name: Set up Python 3.9
+          uses: actions/setup-python@v4
+          with:
+            python-version: 3.9
+  
+        - name: Install Dependencies
+          run: |
+            python -m pip install --upgrade pip
+            pip install datasette werkzeug==1.0.1
+  
+        - name: Deploy to Vercel
+          run: |
+            datasette publish vercel tils.db --project wildandhya-til --metadata metadata.yaml
+          env:
+            VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     
